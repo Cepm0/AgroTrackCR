@@ -1,0 +1,2 @@
+export const positiveQuantity = value => (typeof value === 'number' || (typeof value === 'string' && value.trim() !== '')) && Number.isFinite(Number(value)) && Number(value)>0 && Number(value)<=100000000;
+export const validDate = (date,maximum=new Date().toLocaleDateString('en-CA',{timeZone:'America/Costa_Rica'})) => typeof date==='string' && /^\d{4}-\d{2}-\d{2}$/.test(date) && !Number.isNaN(Date.parse(date)) && new Date(date).toISOString().slice(0,10)===date && date<=maximum;

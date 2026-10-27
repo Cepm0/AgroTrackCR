@@ -1,0 +1,22 @@
+import{test,expect}from'@playwright/test';
+import{readFile}from'node:fs/promises';
+test('productor: registro, finca, lote, cosecha, reporte, persistencia y cierre',async({page})=>{
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('/');await page.getByRole('button',{name:'Crea tu cuenta'}).click();
+ await page.getByLabel('Nombre completo',{exact:true}).fill('Ana Pruebas');await page.getByLabel('Correo electrónico',{exact:true}).fill(`ana.${Date.now()}@example.com`);await page.getByLabel('Contraseña',{exact:true}).fill('PruebaSegura123');await page.getByRole('button',{name:'Crear mi cuenta'}).click();
+ await expect(page.getByRole('heading',{name:'Hola, Ana'})).toBeVisible();
+ await page.getByRole('button',{name:'Completar perfil'}).click();
+ await page.getByLabel('Nombre de la finca').fill('Finca El Sol');await page.getByLabel('Ubicación').fill('Heredia, Costa Rica');await page.getByLabel('Área total').fill('4');await page.getByRole('button',{name:'Guardar información'}).click();await expect(page.getByRole('status')).toContainText('guardados');
+ await page.getByRole('button',{name:'Mis lotes',exact:false}).first().click();await page.locator('.page-heading').getByRole('button',{name:'Nuevo lote',exact:true}).click();
+ const dialog=page.getByRole('dialog');await dialog.getByLabel('Nombre del lote').fill('Lote La Paz');await dialog.getByLabel('Cultivo').fill('Café');await dialog.getByLabel('Área (hectáreas)').fill('1.5');await dialog.getByRole('button',{name:'Guardar lote'}).click();await expect(page.getByText('Lote La Paz',{exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'Actividades',exact:true}).click();await page.getByRole('button',{name:'Registrar actividad',exact:true}).click();await page.getByLabel('Cantidad *',{exact:true}).fill('125');await page.getByLabel('Descripción *',{exact:true}).fill('Recolección de café maduro');await page.getByRole('button',{name:'Guardar actividad'}).click();await expect(page.getByText('Cosecha registrada',{exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'Reportes',exact:true}).click();await page.getByLabel('Lote para el reporte').selectOption({label:'Lote La Paz'});await page.getByRole('button',{name:'Generar reporte',exact:true}).click();await expect(page.getByText('Recolección de café maduro · 125 kg')).toBeVisible();
+ const downloadPromise=page.waitForEvent('download');await page.getByRole('button',{name:'Descargar .txt'}).click();const d=await downloadPromise;expect(d.suggestedFilename()).toMatch(/^trazabilidad-AT-.*\.txt$/);const content=await readFile(await d.path(),'utf8');expect(content).toContain('Finca El Sol');expect(content).toContain('Recolección de café maduro');expect(content).toContain('125 kg');
+ await page.reload();await expect(page.getByRole('heading',{name:'Hola, Ana'})).toBeVisible();await expect(page.getByText('Lote La Paz',{exact:true})).toBeVisible();
+ await page.screenshot({path:'test-results/dashboard-desktop.png',fullPage:true});
+ await page.setViewportSize({width:390,height:844});await expect(page.locator('.sidebar')).not.toBeInViewport();await page.screenshot({path:'test-results/dashboard-mobile.png',fullPage:true});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await page.getByRole('button',{name:'Abrir menú'}).click();await page.getByRole('button',{name:'Cerrar sesión'}).click();await expect(page.getByRole('button',{name:'Iniciar sesión',exact:true})).toBeVisible();expect(errors).toEqual([]);
+});
+test('demo privada con ejemplos y búsqueda sin coincidencias',async({page})=>{await page.goto('/');await page.getByRole('button',{name:'Explorar con datos de ejemplo'}).click();await expect(page.getByRole('heading',{name:'Hola, Gabriel'})).toBeVisible();await expect(page.getByText('Lote El Roble',{exact:true})).toBeVisible();await page.screenshot({path:'test-results/demo-desktop.png',fullPage:true});await page.getByRole('button',{name:'Mis lotes',exact:false}).first().click();await page.getByRole('textbox',{name:'Buscar',exact:true}).fill('inexistente');await expect(page.getByRole('heading',{name:'No hay coincidencias'})).toBeVisible();});
+
+test('la base de datos no se sirve como un archivo público',async({request})=>{for(const path of ['/data/agrotrack.sqlite','/@fs/workspace/Cepm0.github.io/data/agrotrack.sqlite']){const r=await request.get(path);expect([403,404]).toContain(r.status());}});
