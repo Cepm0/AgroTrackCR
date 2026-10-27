@@ -46,3 +46,13 @@ En desarrollo se usa HTTP local. Para despliegue, configura un proxy HTTPS y `SE
 ## QA y límites
 
 `docs/PRUEBAS.md` contiene la matriz inicial y un guion de aceptación. Las pruebas automatizadas son una base para el curso; no sustituyen revisión por pares, pruebas con al menos tres productores, entrevistas, evidencias del equipo ni aprobación del Product Owner. Estas actividades permanecen pendientes. No se añadieron pagos, inventario, integraciones externas ni certificación oficial.
+
+## Animales de la finca
+
+La sección **Animales** amplía el alcance agrícola original por solicitud del usuario. Permite registrar y editar animales individualmente: nombre, identificación/arete único por productor (sin distinguir mayúsculas), especie, raza, sexo, ingreso, nacimiento opcional, estado, peso de referencia y notas. Incluye bovinos, porcinos, ovinos, caprinos, equinos, aves y otras especies. Las aves también se registran individualmente; no hay gestión de hatos o grupos.
+
+Cada ficha tiene un historial de vacunación, desparasitación, revisiones veterinarias, alimentación, reproducción, traslados y otros eventos, con descripción y peso observado opcional. El historial muestra primero los eventos recientes; el reporte descargable los ordena cronológicamente. El peso de referencia de la ficha no se actualiza automáticamente con los eventos: ambos se identifican por separado. El reporte animal se descarga desde la ficha, no desde la sección de reportes agrícolas.
+
+Los registros pertenecen al productor autenticado y están asociados a su finca. Requiere completar el perfil antes de registrar animales. El servidor crea las nuevas tablas automáticamente al reiniciarse; conserva usuarios, lotes y eventos existentes. No se debe borrar `data/agrotrack.sqlite` para actualizar. Las nuevas sesiones de demostración incluyen a Luna (bovino) y Lucero (equino); las cuentas de demostración creadas antes de esta actualización pueden registrar animales manualmente o iniciar una nueva demostración.
+
+Para actualizar una copia local de Windows, detén el servidor con Ctrl+C, guarda tus cambios locales y ejecuta `git pull --ff-only`, `npm.cmd ci` y `npm.cmd run dev`. Si Git informa conflictos o cambios locales, resuélvelos antes de continuar; no borres archivos ni uses un reset forzado. Para producción, vuelve a ejecutar `npm.cmd run build` antes del inicio. La carpeta `.vs` se ignora en Git y en el observador de archivos de Vite para evitar observar los índices bloqueados de Visual Studio; este ajuste no se ha validado en Windows en este entorno.

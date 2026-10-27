@@ -1,4 +1,5 @@
 import express from 'express';
+import {animalRoutes} from './animals.js';
 import {validDate,positiveQuantity} from './validation.js';
 import { DatabaseSync } from 'node:sqlite';
 import { randomBytes, scryptSync, timingSafeEqual, randomUUID } from 'node:crypto';
@@ -24,6 +25,7 @@ export function createApp(filename = ':memory:') {
  app.get('/api/events',(req,res)=>res.json(db.prepare('SELECT * FROM events WHERE user_id=?').all(req.user.id).map(e=>({id:e.id,lotId:e.lot_id,...JSON.parse(e.data)})).sort((a,b)=>b.date.localeCompare(a.date))));
  app.post('/api/lots/:id/events',(req,res)=>{const lot=ownLot(req.params.id,req.user.id);if(!lot)return fail(res,'Lote no encontrado.',404);const {type,date,quantity,unit,input,description}=req.body;if(!['Cosecha','Insumo','Actividad'].includes(type)||!validDate(date)||date<JSON.parse(lot.data).date||!text(description,1000))return fail(res,'Revisa el tipo, la descripción y la fecha (desde el inicio del lote hasta hoy).');if(type!=='Actividad'&&(!positiveQuantity(quantity)||!['kg','g','L','mL','unidades'].includes(unit)))return fail(res,'La cantidad debe ser positiva y tener una unidad válida.');if(type==='Insumo'&&!text(input))return fail(res,'Indica el insumo utilizado.');const id=randomUUID(),data={type,date,description:description.trim(),...(type!=='Actividad'?{quantity:Number(quantity),unit}:{}),...(type==='Insumo'?{input:input.trim()}:{})};db.prepare('INSERT INTO events VALUES(?,?,?,?)').run(id,lot.id,req.user.id,JSON.stringify(data));res.status(201).json({id,lotId:lot.id,...data});});
  app.get('/api/lots/:id/report',(req,res)=>{const lot=ownLot(req.params.id,req.user.id);if(!lot)return fail(res,'Lote no encontrado.',404);const events=db.prepare('SELECT * FROM events WHERE lot_id=? AND user_id=?').all(lot.id,req.user.id).map(e=>JSON.parse(e.data)).sort((a,b)=>a.date.localeCompare(b.date));res.json({lot:lotView(lot),producer:publicUser(req.user),events,generatedAt:new Date().toISOString()});});
+ animalRoutes(app,db);
  app.use((err,req,res,next)=>{console.error(err.message);res.status(err.type==='entity.parse.failed'?400:500).json({error:err.type==='entity.parse.failed'?'Solicitud inválida.':'No fue posible completar la operación.'});});
  return {app,db};
 }

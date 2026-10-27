@@ -38,3 +38,18 @@ Registrar cada defecto con: ID, historia/caso, versión, navegador, precondicion
 - Vista móvil: comprobada a 390 × 844 px, sin desbordamiento global.
 - Arranque de producción: interfaz compilada, autenticación, lotes y datos de demostración comprobados en una instancia temporal separada.
 - Revisión humana, usabilidad con productores, migración a PostgreSQL, despliegue HTTPS y auditoría exhaustiva de seguridad: pendientes.
+
+## Ampliación: animales
+
+Esta funcionalidad se agregó por solicitud posterior del usuario; no forma parte de las 12 historias agrícolas originales. Casos nuevos:
+
+| Caso | Resultado esperado | Evidencia |
+| --- | --- | --- |
+| AN-01 | Finca obligatoria; registrar y editar animal con identidad única por productor. | API y navegador |
+| AN-02 | Rechazar identificadores vacíos/duplicados, peso negativo/cero, especie/estado inválidos, fecha futura o nacimiento posterior al ingreso. | API; navegador verifica duplicados |
+| AN-03 | Guardar eventos con fecha válida desde el ingreso; rechazar descripción vacía y pesos inválidos. No permitir mover el ingreso después de eventos existentes. | API y navegador |
+| AN-04 | Mostrar historial y descargar reporte con animal, finca y eventos cronológicos. | API; navegador verifica contenido descargado |
+| AN-05 | Denegar ficha/eventos, edición, nuevos eventos y reportes de otros productores. | API |
+| AN-06 | Conservar animales tras recarga y mostrar sección a 390 px sin desbordamiento global. | Navegador |
+
+Validación de esta ampliación: 14 pruebas de lógica/API aprobadas (las 9 anteriores más 5 nuevas), 4 de navegador aprobadas (las 3 anteriores más el flujo animal), compilación aprobada. Los ejemplos son ficticios y los registros no constituyen certificados sanitarios ni recomendaciones veterinarias. La corrección del observador `.vs` requiere comprobación adicional en Windows.
